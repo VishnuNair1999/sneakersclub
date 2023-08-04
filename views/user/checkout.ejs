@@ -1,0 +1,748 @@
+<%- include('../partials/user-header.ejs') %>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.js"></script>
+
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+
+  <main class="main">
+    <section class="mt-50 mb-50">
+      <div class="container">
+
+        <div id="ex1" class="modal" style="height: fit-content;width: fit-content;">
+
+          <form action="/add-address" method="post">
+            <div class="row">
+              <div class="form-group col-md-12">
+                <input required class="radio" style="width: 20px;" name="type" type="radio" value="home">
+                <label for="">Home</label>
+                <input required class="radio" style="width: 20px;" name="type" type="radio" value="work">
+                <label for="">Work</label>
+                <input required class="radio" style="width: 20px;" name="type" type="radio" value="other">
+                <label for="">Other</label>
+
+              </div>
+              <div class="form-group col-md-12">
+                <label>Full Name <span class="required">*</span></label>
+                <input required class="form-control square" name="name" type="text">
+              </div>
+
+              <div class="form-group col-md-12">
+                <label>Address <span class="required">*</span></label>
+                <input required="" class="form-control square" name="address" type="text">
+              </div>
+              <div class="form-group col-md-12">
+                <label>State<span class="required">*</span></label>
+                <input required="" class="form-control square" name="state" type="text">
+              </div>
+              <div class="form-group col-md-12">
+                <label>Country<span class="required">*</span></label>
+                <input required="" class="form-control square" name="country" type="text">
+              </div>
+              <div class="form-group col-md-12">
+                <label>Pincode<span class="required">*</span></label>
+                <input required="" class="form-control square" name="pincode" type="text">
+              </div>
+              <div class="form-group col-md-12">
+                <label>Phone <span class="required">*</span></label>
+                <input required="" class="form-control square" name="phone" type="text">
+              </div>
+              <div class="col-md-12">
+                <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                <a href="#" rel="modal:close" class="btn btn-fill-out bg-danger submit" name="submit"
+                  value="Submit">close</a>
+
+              </div>
+
+
+            </div>
+          </form>
+
+        </div>
+
+        <!-- Modal ends -->
+        <form id="checkOut-form" method="post">
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-25">
+                <h4>Billing Details</h4>
+              </div>
+             
+
+                <input name="user" value="<%=userSession._id%>" type="hidden">
+                <input name="total" value="<%=total%>" type="hidden">
+                <input id="cartId" name="cartID" type="hidden" value="<%=cartItems[0]._id%>">
+                <div id="address-container" style="max-width: fit-content;">
+                  <div class="card-deck">
+                    <% address?.Address.forEach(function(item,index) { %>
+                    <div class="row">
+                      <div id="" class="card col-md-12">
+                        <div class="card-header d-flex">
+                          <div class="form-check">
+                            <input class="form-check-input" value="<%=item._id%>" type="checkbox" name="address" id="flexCheckboxDefault1" readonly>
+                            <label class="form-check-label" for="flexCheckboxDefault1">
+                              <h5 class="mb-0">Billing Address</h5>
+                            </label>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <strong>
+                            <%=item.fname%>
+                            <%=item.lname%>
+                          </strong>
+                          <address>
+                            <%=item.street%>,
+                            <%=item.appartment%>,
+                            <%=item.city%>,
+                            <%=item.zipcode%>,
+                            <%=item.state%>,
+                            <%=item.phone%>,
+                            <%=item.email%>
+                          </address>
+                          <div class="d-flex">
+                            <button type="button" class="btn btn-primary btn-small hover-up mx-1" onclick="editAddress()">
+                              <input type="hidden" id="addressId" value="adsgdsgasg">
+                              <i class="fi-rs-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-small hover-up bg-danger mx-1" style="border-color: red;" onclick="deleteAddress('<%=item._id%>')">
+                              <i class="fi-rs-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <% }); %>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">Add New Address</button>
+            
+            </div>
+          
+            <div class="col-md-6">
+              <div class="order_review">
+                <div class="mb-20">
+                  <h4>Your Orders</h4>
+                </div>
+                <div class="table-responsive order_table text-center">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th colspan="2">Product</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <% cartItems?.forEach(function(item) { %>
+                        <td class="image product-thumbnail"><img src="/productImages/<%= item.carted.img[0] %>" alt="#"></td>
+                        <td>
+                          <input type="hidden" name="cartItems" id="cartItems" value="<%=item%>">
+                          <input type="hidden" name="quantity" id="quantity" value="<%= item.quantity %>">
+                          <h5><a href="#"><%=item.carted.name%></a></h5>
+                          <span class="product-qty">x<%=item.quantity%></span>
+                        </td>
+                        <td>₹<%=item.carted.price%></td>
+                      </tr>
+                      <% }); %>
+                      <tr>
+                        <th>SubTotal</th>
+                        <td class="product-subtotal" id="subTotal" colspan="2">₹<span><%= total %></span></td>
+                      </tr>
+                      <tr>
+                        <th>Shipping</th>
+                        <td colspan="2"><em>Free Shipping</em></td>
+                      </tr>
+                      <tr>
+                        <th>Your Special Offer</th>
+                        <td colspan="2"><em id="couponOffer"></em></td>
+                      </tr>
+                      <tr>
+                        <th>Total</th>
+                        <td colspan="2" class="product-subtotal" id="total"><span class="font-xl text-brand fw-900">₹<%= total %></span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                <div class="payment_method">
+                  <div class="mb-25">
+                    <h5>Payment</h5>
+                  </div>
+                  <div class="payment_option">
+                    <div class="custome-radio">
+                      <input class="form-check-input" required="" type="radio" name="payment_option" value="COD" id="exampleRadios1" checked="">
+                      <label class="form-check-label" for="exampleRadios1" data-bs-toggle="collapse" data-target="#checkPayment" aria-controls="checkPayment">COD</label>
+                      <div class="form-group collapse in" id="checkPayment"></div>
+                    </div>
+
+                    <div class="custome-radio">
+                      <input class="form-check-input" required="" type="radio" name="payment_option" value="wallet" id="exampleRadios2" checked="">
+                      <label class="form-check-label" for="exampleRadios2" data-bs-toggle="collapse" data-target="#wallet" aria-controls="wallet">Wallet</label>
+                      <div class="form-group collapse in" id="wallet">
+                      </div>
+                    </div>
+    
+                    <div class="custome-radio">
+                      <input class="form-check-input" required="" type="radio" value="razorpay" name="payment_option" id="exampleRadios3" checked="">
+                      <label class="form-check-label" for="exampleRadios3" data-bs-toggle="collapse" data-target="#razorpay" aria-controls="paypal">Razorpay</label>
+                      <div class="form-group collapse in" id="razorpay">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <input name="discountedAmount" id="total1" value="<%=total%>" type="hidden">
+                      <input type="hidden" name="couponCode" id="codes" value="0">
+                    </div>
+                  </div>
+                </div>
+                <button type="button" onclick="submitAjax()" class="btn btn-fill-out btn-block mt-30">Place your order</button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+      </div>
+      </div>
+      <div class="row">
+        
+
+      </div>
+      </div>
+    </section>
+  </main>
+ 
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="col-md-6">
+            <div class="mb-25">
+              <h4>Billing Address Details</h4>
+            </div>
+            <form style="width: 450px;">
+              <div class="form-group">
+                <input type="text" required="" name="fname" id="fname" placeholder="First name *">
+                <p id="err1" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" required="" name="lname" id="lname" placeholder="Last name *">
+                <p id="err2" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="street" id="street" required="" placeholder="Street*">
+                <p id="err3" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="appartment" id="appartment" required="" placeholder="Apartment">
+                <p id="err4" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="city" id="city" placeholder="City / Town *">
+                <p id="err5" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="state" id="state" placeholder="State / County *">
+                <p id="err6" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="zipcode" id="zipcode" placeholder="Postcode / ZIP *">
+                <p id="err7" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="phone" id="phone" placeholder="Phone *">
+                <p id="err8" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="email" id="email" placeholder="Email address *">
+                <p id="err9" class="text-danger"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="validate()">Save</button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- edit address -->
+
+  <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+        </div>
+        <div class="modal-body">
+          <div class="col-md-6">
+            <div class="mb-25">
+              <h4>Change Billing Address</h4>
+            </div>
+            <form style="width: 450px;" id="editAddressForm">
+
+              <div class="form-group">
+                <input type="text" name="fname" id="Fname" placeholder="First name *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="lname" id="Lname" placeholder="Last name *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="street" id="Street" placeholder="Street*">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="appartment" id="Appartment" placeholder="Appartment">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="city" id="City" placeholder="City / Town *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="state" id="State" placeholder="State / County *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input required="" type="text" name="zipcode" id="Zipcode" placeholder="Postcode / ZIP *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="phone" id="Phone" placeholder="Phone *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="form-group">
+                <input type="text" name="email" id="Email" placeholder="Email address *">
+                <p id="err" class="text-danger"></p>
+              </div>
+              <div class="modal-footer">
+                <button id="cancelBtn" type="button" class="btn btn-secondary">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="postEditAddress()">Save</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <style>
+    p#err {
+      font-size: 12px;
+    }
+
+    .toggle_info {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .toggle_info input[type="radio"] {
+      margin-top: 2px;
+    }
+  </style>
+   
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.20/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.5/dist/sweetalert2.all.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+
+      function validate() {
+        const fname = document.getElementById('fname')
+        const lname = document.getElementById('lname')
+        const street = document.getElementById('street')
+        const appartment = document.getElementById('appartment')
+        const city = document.getElementById('city')
+        const state = document.getElementById('state')
+        const zipcode = document.getElementById('zipcode')
+        const phone = document.getElementById('phone')
+        const email = document.getElementById('email')
+
+        const fnameVal = fname.value.trim()
+        const lnameVal = lname.value.trim()
+        const streetVal = street.value.trim()
+        const appartmentVal = appartment.value.trim()
+        const cityVal = city.value.trim()
+        const stateVal = state.value.trim()
+        const zipcodeVal = zipcode.value.trim()
+        const phoneVal = phone.value.trim()
+        const emailVal = email.value.trim()
+
+        let error1 = fname.parentElement.querySelector('p')
+        let error2 = lname.parentElement.querySelector('p')
+        let error3 = street.parentElement.querySelector('p')
+        let error4 = appartment.parentElement.querySelector('p')
+        let error5 = city.parentElement.querySelector('p')
+        let error6 = state.parentElement.querySelector('p')
+        let error7 = zipcode.parentElement.querySelector('p')
+        let error8 = phone.parentElement.querySelector('p')
+        let error9 = email.parentElement.querySelector('p')
+
+        error1.innerText = ''
+        error2.innerText = ''
+        error3.innerText = ''
+        error4.innerText = ''
+        error5.innerText = ''
+        error6.innerText = ''
+        error7.innerText = ''
+        error8.innerText = ''
+        error9.innerText = ''
+
+        let flag = 1
+
+        if (fnameVal == '') {
+          error1.innerText = 'Enter a Valid First Name'
+          flag = 2
+        }
+        if (lnameVal == '') {
+          error2.innerText = 'Enter a Valid Last Name'
+          flag = 2
+        }
+
+        if (streetVal == '') {
+          error3.innerText = 'Enter a Valid Street Address'
+          flag = 2
+        }
+        if (appartmentVal == '') {
+          error4.innerText = 'Enter a Valid Appartment Address'
+          flag = 2
+        }
+        if (cityVal == '') {
+          error5.innerText = 'Enter a Valid City Name'
+          flag = 2
+        }
+        if (stateVal == '') {
+          error6.innerText = 'Enter a Valid State Name'
+          flag = 2
+        }
+        if (zipcodeVal == '') {
+          error7.innerText = 'Enter a Valid ZipCode'
+          flag = 2
+        }
+        if (phoneVal == '') {
+          error8.innerText = 'Enter a Valid Mobile Number'
+          flag = 2
+        } else if (phoneVal < 10) {
+          error8.innerText = 'Enter a Valid Mobile Number'
+          flag = 2
+        }
+        if (emailVal == '') {
+          error9.innerText = 'Enter a Valid Email Address'
+          flag = 2
+        } else if (!emailVal.match(/^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/)) {
+          error9.innerText = 'Enter a Valid Email Address'
+          flag = 2
+        }
+
+        if (flag == 1) {
+          submit(fnameVal, lnameVal, streetVal, appartmentVal, cityVal, stateVal, zipcodeVal, phoneVal, emailVal)
+        }
+      }
+
+      function submit(fnameVal, lnameVal, streetVal, appartmentVal, cityVal, stateVal, zipcodeVal, phoneVal, emailVal) {
+        return new Promise((resolve) => {
+          $.ajax({
+            url: '/add-address',
+            method: 'POST',
+            data: {
+              fname: fnameVal,
+              lname: lnameVal,
+              street: streetVal,
+              appartment: appartmentVal,
+              city: cityVal,
+              state: stateVal,
+              zipcode: zipcodeVal,
+              phone: phoneVal,
+              email: emailVal
+            },
+            success: (response) => {
+              Swal.fire({
+                title: 'Success',
+                text: 'Address added successfully',
+                icon: 'success',
+                timer: 4000,
+                buttons: false
+              });
+              resolve(); // Resolve the Promise after displaying the swal
+            }
+
+          });
+        }).then(() => {
+          location.reload();
+        });
+      }
+
+
+
+      //edit modal cancel button
+      $('#cancelBtn').click(function () {
+        $('#editModal').modal('hide');
+      });
+
+      let currentAddressId; // Declare a variable to store the current addressId
+
+      function editAddress(addressId, userId) {
+        currentAddressId = addressId; // Store the current addressId in the variable
+        $.ajax({
+          url: '/edit-address/' + addressId,
+          method: 'GET',
+          success: function (response) {
+            if (response) {
+              // Open the modal
+              $('#editModal').modal('show');
+
+              // Update the modal with the address data after the modal is shown
+              $('#editModal').on('shown.bs.modal', function () {
+                $('#Fname').val(response.fname);
+                $('#Lname').val(response.lname);
+                $('#Street').val(response.street);
+                $('#Appartment').val(response.appartment);
+                $('#City').val(response.city);
+                $('#State').val(response.state);
+                $('#Zipcode').val(response.zipcode);
+                $('#Phone').val(response.phone);
+                $('#Email').val(response.email);
+              });
+            }
+          },
+          error: function () {
+            console.log('Error occurred while retrieving the address data.');
+          }
+        });
+      }
+
+      // Add the code snippet here
+      $('#editModal').on('shown.bs.modal', function () {
+        $('#editForm input:first').focus();
+      });
+
+      function postEditAddress() {
+        $.ajax({
+          url: '/edit-address/' + currentAddressId, // Use the current addressId from the variable
+          method: 'PATCH',
+          data: $('#editAddressForm').serialize(),
+          success: (response) => {
+            if (response) {
+              location.reload();
+              swal({
+                title: 'Success',
+                text: 'Address updated successfully',
+                icon: 'success',
+                timer: 4000,
+                buttons: false
+              });
+            } else {
+              swal({
+                title: 'Error',
+                text: 'Error occurred while updating the address',
+                icon: 'error',
+                timer: 4000,
+                buttons: false
+              });
+            }
+          }
+        });
+      }
+
+
+
+
+      // remove address
+
+      function deleteAddress(addressId) {
+        event.preventDefault()
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!',
+          timer: 3000
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: '/deleteNewAddress',
+              method: 'delete',
+              data: {
+
+                addressId: addressId
+              },
+              success: (response) => {
+                if (response.deleteAddress) {
+                  location.reload()
+                }
+
+              }
+            })
+          }
+        })
+        return false
+      }
+
+
+    
+ function submitAjax() {
+  swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to confirm',
+    icon: 'success',
+    buttons: true,
+    dangerMode: true,
+  }).then((isConfirm) => {
+    if (isConfirm) {
+      // Get the form element
+      var form = document.getElementById("checkOut-form");
+
+      // Get all the checked checkboxes
+      var checkboxes = form.querySelectorAll('input[name="address"]:checked');
+
+      // Create an array to store the checked values
+      var checkedValues = [];
+      checkboxes.forEach(function (checkbox) {
+        checkedValues.push(checkbox.value);
+      });
+
+      // Add the checked values to a hidden input field in the form
+      var checkedValuesInput = document.createElement("input");
+      checkedValuesInput.type = "hidden";
+      checkedValuesInput.name = "checkedAddresses";
+      checkedValuesInput.value = checkedValues.join(",");
+
+      // Append the hidden input field to the form
+      form.appendChild(checkedValuesInput);
+
+      $.ajax({
+      url: "/checkout",
+      method: 'post',
+      data: $('#checkOut-form').serialize(),
+      success: (response) => {
+       
+        if (response.error) {
+          
+                       
+          Swal.fire({
+            title: 'Error!',
+            text: response.error,
+            icon: 'error',
+            timer: 5000
+          })
+        } else if (response.codStatus === true) {
+         
+          Swal.fire({
+            title: 'Order Placed!',
+            text: 'Your order has been placed successfully.',
+            icon: 'success',
+            timer: 5000
+          }).then(() => {
+            location.href = '/'
+          })
+        }else{
+          try{
+            razorpay(response)
+            
+
+            }catch(error){
+                Swal.fire({
+                  title: 'Error!',
+                  text: error.message,
+                  icon: 'error',
+                  timer: 500
+                })
+            }
+          }
+        } 
+      })
+    }
+  });
+}
+
+
+
+
+
+function razorpay(order) {
+  var options = {
+    "key": "rzp_test_QpQuf1omtzGOhO",
+    "amount": order.amount,
+    "currency": "INR",
+    "name": "SNEAKERCLUB",
+    "description": "Test Transaction",
+    "image": "https://example.com/your_logo",
+    "order_id": order.id,
+    "handler": function (response) {
+      verifypayment(response, order);
+    },
+    "prefill": {
+      "name": "Gaurav Kumar",
+      "email": "gaurav.kumar@example.com",
+      "contact": "9000090000"
+    },
+    "notes": {
+      "address": "Razorpay Corporate Office"
+    },
+    "theme": {
+      "color": "#3399cc"
+    }
+  };
+
+  // Create a Razorpay instance and open the payment dialog.
+  var rzp1 = new Razorpay(options);
+
+   rzp1.on('payment.success', function (response) {
+  //   // Call the verifypayment function with the order ID
+     verifypayment(response, order, orderId);
+   });
+
+  rzp1.open();
+}
+
+function verifypayment(response, order, paymentId) {
+  // Make an AJAX request to verify the payment.
+  $.ajax({
+    url: '/verify-payment',
+    data: {
+      payment: response,
+      order: order,
+      paymentId: paymentId
+    },
+    method: 'post',
+    success: (response) => {
+      console.log(response,'jjj');
+      if (response.status === false) {
+        Swal.fire({
+          title: 'Order Placed!',
+          text: 'Your order has been placed successfully.',
+          icon: 'success',
+          timer: 5000
+        }).then(() => {
+          // Redirect to the success page after showing the alert
+          location.href = '/orderSuccess';
+        });
+      } else {
+        // Handle the case where payment verification fails.
+        alert('payment failed');
+      }
+    }
+  });
+}
+
+
+
+    
+    </script>
