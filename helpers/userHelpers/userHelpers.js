@@ -1,7 +1,7 @@
 // const { model } = require("mongoose")
 const db = require("../../models/connection")
 const bcrypt = require("bcrypt")
-
+const { ObjectId } = require('mongoose').Types;
 
 
 module.exports={
@@ -169,7 +169,131 @@ getAllBanner: () => {
 },
 
 
+//WISHLIST
+getWishListCount: (userId) => {
+  try {
+      return new Promise((resolve, reject) => {
+          let count = 0
+          db.Wishlist.findOne({ user: userId }).then((userWishlist) => {
+              if (userWishlist) {
+                  count = userWishlist.wishList.length
+              }
+              resolve(count)
+          })
+      })
+  } catch (error) {
+      console.log(error.message);
+  }
+},
 
+
+
+getWishListProducts: (userId) => {
+  try {
+      return new Promise((resolve, reject) => {
+          db.Wishlist.aggregate([
+              {
+                  $match: {
+                      "user": new ObjectId(userId)
+                  }
+              },
+              {
+                  $unwind: "$wishList"
+              },
+              {
+                  $project: {
+                      productId: "$wishList.productId",
+                      createdAt: "$wishList.createdAt"
+                  }
+              },
+              {
+                  $lookup: {
+                      from: "products",
+                      localField: "productId",
+                      foreignField: "_id",
+                      as: "wishListed"
+                  }
+              },
+              {
+                  $project: {
+                      productId: 1,
+                      createdAt: 1,
+                      wishListed: { $arrayElemAt: ["$wishListed", 0] }
+                  }
+              }
+          ]).then((wishListed) => {
+              resolve(wishListed)
+          })
+      })
+  } catch (error) {
+      console.log(error.message);
+  }
+
+},
+
+
+
+
+
+
+
+addWishList: (userId, proId) => {
+  try {
+      return new Promise((resolve, reject) => {
+          db.Wishlist.findOne({ user: new ObjectId(userId) }).then((userWishList) => {
+              if (userWishList) {
+                  let productExist = userWishList.wishList.findIndex((wishList) => wishList.productId == proId);
+                  if (productExist != -1) {
+                      resolve({ status: false });
+                  } else {
+                      db.Wishlist.updateOne(
+                          { user: new ObjectId(userId) },
+                          {
+                              $push: {
+                                  wishList: { productId: new ObjectId(proId) }
+                              }
+                          }
+                      ).then(() => {
+                          resolve({ status: true });
+                      })
+                  }
+              } else {
+                  let wishListData = {
+                      user: new ObjectId(userId),
+                      wishList: [{ productId: new ObjectId(proId) }]
+                  };
+                  let newWishList = new db.Wishlist(wishListData);
+                  newWishList.save().then(() => {
+                      resolve({ status: true });
+                  }).catch((err) => {
+                      reject(err);
+                  });
+              }
+          });
+      });
+  } catch (error) {
+      console.log(error.message);
+  }
+},
+
+
+
+removeProductWishlist: (proId, wishListId) => {
+  try {
+      return new Promise((resolve, reject) => {
+          db.Wishlist.updateOne(
+              { _id: wishListId },
+              {
+                  $pull: { wishList: { productId: proId } }
+              }
+          ).then((response) => {
+              resolve(response)
+          })
+      })
+  } catch (error) {
+      console.log(error.message);
+  }
+}
 
 
 

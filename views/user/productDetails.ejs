@@ -131,8 +131,9 @@
                                             <button type="button" class="button button-add-to-cart"
                                                 onclick="addToCart('<%=product._id%>')">Add to cart</button>
 
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up"
-                                                href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                                <button type="button" class="button button-add-to-cart"
+                                                onclick="addToWishList('<%=product._id%>')">Add to Wishlist</button>
+
 
 
                                             <!-- COMPARE -->
@@ -185,4 +186,38 @@
         }
       });
     }
+
+    function addToWishList(proId) {
+    $.ajax({
+      url: '/add-to-wishlist',
+      method: 'POST',
+      data: {
+        proId: proId
+      },
+      success: (response) => {
+        if (response.status) {
+          // Product added to Wishlist successfully
+          Swal.fire({
+            icon: 'success',
+            title: 'Product added to Wishlist!',
+            showConfirmButton: false,
+            timer: 3000
+          });
+          // Reload page after 3 seconds
+          setTimeout(function() {
+            location.reload();
+          }, 3000);
+
+        } else {
+          // Error adding product to Wishlist
+          Swal.fire({
+            icon: 'error',
+            title: 'Product already exist in Wishlist',
+            timer: 3000
+          });
+
+        }
+      }
+    })
+  }
   </script>

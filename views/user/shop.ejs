@@ -27,20 +27,17 @@
                                             </a>
                                         </div>
                                         <div class="product-action-1">
-                                            <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal">
-<i class="fi-rs-search"></i></a>
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
-                                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
+
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishList('<%=item._id%>')"><i class="fi-rs-heart"></i></a>
+
                                         </div>
                                         <div class="product-badges product-badges-position product-badges-mrg">
                                             <span class="hot">Hot</span>
                                         </div>
                                     </div>
                                     <div class="product-content-wrap">
-                                        <div class="product-category">
-                                            <a href="shop-grid-right.html">Music</a>
-                                        </div>
-                                        <h2><a href="shop-product-right.html"><%= item.name %></a></h2>
+                                       
+                                        <h2><a href="/product-detail/<%= item._id%>"><%= item.name %></a></h2>
                                         <div class="rating-result" title="90%">
                                             <span>
                                                 <span><%= item.rating %></span>
@@ -126,6 +123,40 @@
             }
           });
         }
+
+        function addToWishList(proId) {
+    $.ajax({
+      url: '/add-to-wishlist',
+      method: 'POST',
+      data: {
+        proId: proId
+      },
+      success: (response) => {
+        if (response.status) {
+          // Product added to Wishlist successfully
+          Swal.fire({
+            icon: 'success',
+            title: 'Product added to Wishlist!',
+            showConfirmButton: false,
+            timer: 3000
+          });
+          // Reload page after 3 seconds
+          setTimeout(function() {
+            location.reload();
+          }, 3000);
+
+        } else {
+          // Error adding product to Wishlist
+          Swal.fire({
+            icon: 'error',
+            title: 'Product already exist in Wishlist',
+            timer: 3000
+          });
+
+        }
+      }
+    })
+  }
       </script>
       
         

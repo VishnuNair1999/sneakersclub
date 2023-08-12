@@ -149,7 +149,7 @@
                       <% }); %>
                       <tr>
                         <th>SubTotal</th>
-                        <td class="product-subtotal" id="subTotal" colspan="2">₹<span><%= total %></span></td>
+                        <td class="product-subtotal" id="subtotal" colspan="2">₹<span><%= total %></span></td>
                       </tr>
                       <tr>
                         <th>Shipping</th>
@@ -161,12 +161,31 @@
                       </tr>
                       <tr>
                         <th>Total</th>
-                        <td colspan="2" class="product-subtotal" id="total"><span class="font-xl text-brand fw-900">₹<%= total %></span></td>
+                        <td colspan="2" class="product-subtotal" id="maintotal"><span class="font-xl text-brand fw-900">₹<%= total %></span></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                <div class="panel-body ">
+                  <p class="mb-30 font-sm">If you have a coupon code, please apply it below.</p>
+                  <form method="post">
+
+
+                      <div class="form-group">
+                          <input type="text" id="enteredCoupon" placeholder="Enter Coupon Code...">
+                          <h5 class="pt-4 text-success" id="discountCurrentAmount"></h5><br>
+                          <span class="text-primary" id="successCoupon"></span>
+                          <span class="text-danger" id="errCoupon"></span>
+
+
+                      </div>
+                      <div class="form-group">
+                          <button type="button" class="btn btn-md" onclick="validateCoupon('<%=total%>')"
+                              name="login">Apply Coupon</button>
+                      </div>
+                  </form>
+              </div>
                 <div class="payment_method">
                   <div class="mb-25">
                     <h5>Payment</h5>
@@ -192,7 +211,8 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <input name="discountedAmount" id="total1" value="<%=total%>" type="hidden">
+                      <input name="couponTotal" id="couponTotal" value="<%=total%>" type="hidden">
+                      <input name="discountAmount" id="discountAmount" type="hidden">
                       <input type="hidden" name="couponCode" id="codes" value="0">
                     </div>
                   </div>
@@ -360,6 +380,49 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.5/dist/sweetalert2.all.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+function validateCoupon(total) {
+        const code = document.getElementById('enteredCoupon').value?.trim()
+        
+        
+        console.log(code);
+        $.ajax({
+            url: '/validateCode?code=' + code,
+            method: 'post',
+            success: (response) => {
+                console.log(response);
+                 if (response.discountAmount && response.couponTotal) {
+                    document.getElementById('subtotal').innerHTML = '₹' + response.couponTotal
+                    document.getElementById('maintotal').innerHTML = '₹' + response.couponTotal
+
+                    document.getElementById('discountCurrentAmount').innerHTML = '₹' + response.discountAmount + 'off'
+                    document.getElementById('successCoupon').innerHTML = response.success
+                    document.getElementById('errCoupon').innerHTML = ''
+                    document.getElementById('discountAmount').value = response.discountAmount
+                    document.getElementById('couponTotal').value = response.couponTotal
+
+                    document.getElementById('couponCode').value = code
+
+
+                } else {
+                    document.getElementById('errCoupon').innerHTML = response.err
+
+                    document.getElementById('subtotal').innerHTML = '₹' + response.total
+                    document.getElementById('maintotal').innerHTML = '₹' + response.total
+
+
+
+                    document.getElementById('discountCurrentAmount').innerHTML = ''
+                    document.getElementById('successCoupon').innerHTML = ''
+
+
+                }
+            }
+        })
+
+    }
+
+
+
 
       function validate() {
         const fname = document.getElementById('fname')
@@ -679,7 +742,7 @@
 function razorpay(order) {
   var options = {
     "key": "rzp_test_QpQuf1omtzGOhO",
-    "amount": order.amount,
+    "amount": Number(order.amount),
     "currency": "INR",
     "name": "SNEAKERCLUB",
     "description": "Test Transaction",

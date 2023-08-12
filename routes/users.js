@@ -133,14 +133,15 @@ router.get('/orderSuccess',auth.userauth,orderController.getOrderSuccess)
 // VERIFY PAYMENTS
 router.post('/verify-payment',auth.userauth,orderController.VerifyPayment)
 
-
+//cpupon
+router.post('/validateCode',orderController.validateCoupon)
 //  WISHLIST
 
-// router.get('/wish-list',controllers.getWishList)
+router.get('/wish-list',controllers.getWishList)
 
-// router.route('/add-to-wishlist').post(controllers.addWishList)
+ router.route('/add-to-wishlist').post(controllers.addWishList)
 
-// router.route('/remove-product-wishlist').delete(controllers.removeProductWishlist)
+ router.route('/remove-product-wishlist').delete(controllers.removeProductWishlist)
 
 
 

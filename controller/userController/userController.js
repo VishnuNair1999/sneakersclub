@@ -17,17 +17,12 @@ module.exports = {
 
   getHome: async (req, res) => {
 
+    userSession = req.session.user
+    let banner = null
+    banner = await userhelpers.getAllBanner()
 
-    if (req.session.user) {
-
-      userSession = req.session.user
-      console.log(userSession);
-
-      res.render('user/user', { userSession })
-    } else {
-      res.render('user/user')
-
-    }
+    res.render('user/user', { userSession, banner })
+   
 
   },
   
@@ -232,7 +227,39 @@ module.exports = {
 },
 
 
+getWishList: async (req, res) => {
+  let userSession = req.session.user
+ 
+  const wishlistCount = await userhelpers.getWishListCount(userSession._id)
+  userhelpers.getWishListProducts(userSession._id).then((wishlistProducts) => {
+     
+      res.render('user/wishList', { userSession, wishlistProducts, wishlistCount })
+  })
+},
 
+
+
+
+addWishList: (req, res) => {
+  let proId = req.body.proId
+  let userId = req.session.user._id
+  console.log(proId, '1');
+  console.log(userId, '2');
+  userhelpers.addWishList(userId, proId).then((response) => {
+      console.log(response, '3');
+      res.send(response)
+  })
+},
+
+
+
+removeProductWishlist: (req, res) => {
+  let proId = req.body.proId
+  let wishListId = req.body.wishListId
+  userhelpers.removeProductWishlist(proId, wishListId).then((response) => {
+      res.send(response)
+  })
+},
 
 
 

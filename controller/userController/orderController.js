@@ -80,42 +80,49 @@ getCheckout: async (req, res) => {
 
 
 postCheckOut: async (req, res) => {
-  let userId = req.session.user._id
-  
-  
+  let userId = req.session.user._id;
+  const couponCode = req.body.couponCode;
+  const discountAmount = req.body.discountAmount;
+  const cartProductQuantity = await orderHelper.getEachProduct(req.session.user.userId);
+
   try {
-    const data = req.body;
-      
-    try {
-      const response = await orderHelper.placeOrder(data,userId);
-      const total = data.total
-      
+      const data = req.body;
+      let total; // Declare total variable
 
-     
+      if (couponCode === "") {
+          console.log('null');
+          total = data.total; // Initialize total if no coupon code
+      } else {
+          await orderHelper.addCoupontoUser(couponCode, req.session.user.userId);
+          total = req.body.couponTotal;
+          console.log('------',total,'-------')
+          // Initialize total with couponTotal
+      }
 
-      if (data.payment_option === "COD") {
-        res.json({ codStatus: true })
+      try {
+        console.log("user--------------------------",userId)
+          const response = await orderHelper.placeOrder(data, userId, total, couponCode, discountAmount, cartProductQuantity);
 
-      }else if(data.payment_option === "razorpay"){
-
-        orderHelper.generateRazorpay('hi',response.total).then((result)=>{
-          result.codeStatus = false;
-          res.json(result)
-        })
-       } else if (data.payment_option === 'wallet') {
-        res.json({ orderStatus: true, message: 'order placed successfully' })
-    }
-
-
-    } catch (error) {
-      console.error({ error: error.message });
-      res.status(500).json({ error: error.message });
-    }
+          if (data.payment_option === "COD") {
+              res.json({ codStatus: true });
+          } else if (data.payment_option === "razorpay") {
+              orderHelper.generateRazorpay('hi',response.total).then((result) => {
+                  result.codeStatus = false;
+                  res.json(result);
+              });
+          } else if (data.payment_option === 'wallet') {
+              res.json({ orderStatus: true, message: 'order placed successfully' });
+          }
+      } catch (error) {
+          console.error({ error: error.message });
+          res.status(500).json({ error: error.message });
+      }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+      console.error(error);
+      res.status(500).json({ error: error.message });
   }
 },
+
 
 
 
@@ -250,7 +257,17 @@ VerifyPayment: async (req, res) => {
   })
 },
 
+validateCoupon: async (req, res) => {
 
+  
+  const code = req.query.code
+  let total = await cartHelper.totalCheckOutAmount(req.session.user._id)
+  console.log(total,"asdfghjsdfgh");
+
+  orderHelper.validateCouponCode(code, total, req.session.user.userId).then((response) => {
+      res.json(response)
+  })
+}
 
 
 

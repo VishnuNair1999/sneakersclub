@@ -3,7 +3,8 @@ const db = require ('../../models/connection')
 // const { promises } = require('dns');
 // const { resolve } = require('path');
 // const orderHelper = require('../userHelpers/orderHelper');
-const { ObjectId } = require('bson');
+ const { ObjectId } = require('bson');
+// const ObjectId = require("mongodb").ObjectId;
 const moment = require('moment')
 
 const Razorpay = require("razorpay");
@@ -113,175 +114,8 @@ getOrders: (userId) => {
 
 // PLACE ORDER
 
-// placeOrder: (data,userId) => {
-  
-//     try {
-//         let flag = 0
-       
-//         return new Promise(async (resolve, reject) => {
-//             let productDetails = await db.Cart.aggregate([
-//                 {
-//                     $match: {
-//                         user: new ObjectId(userId)
-//                     }
-//                 },
-//                 {
-//                     $unwind: '$cartItems'
-//                 },
-//                 {
-//                     $project: {
-//                         item: "$cartItems.productId",
-//                         quantity: "$cartItems.quantity"
-//                     }
-//                 },
-//                 {
-//                     $lookup: {
-//                         from: "products",
-//                         localField: "item",
-//                         foreignField: "_id",
-//                         as: "productDetails"
-//                     }
-//                 },
-//                 {
-//                     $unwind: "$productDetails"
 
-//                 },
-//                 {
-//                     $project: {
-
-//                         productId: "$productDetails._id",
-//                         productName: "$productDetails.name",
-//                         productPrice: "$productDetails.price",
-//                         brand: "$productDetails.brand",
-//                         quantity: "$quantity",
-//                         category: "$productDetails.category",
-//                         image: "$productDetails.img"
-//                     }
-//                 }
-//             ])
-           
-
-//             let Address = await db.Address.aggregate([
-//                 {
-//                     $match: { user: new ObjectId(userId) }
-//                 },
-//                 {
-//                     $unwind: "$Address"
-//                 },
-//                 {
-//                     $match: { "Address._id": new ObjectId(data.address) }
-//                 },
-//                 {
-//                     $project: { item: "$Address" }
-//                 }
-//             ])
-            
-
-//             let status, orderStatus
-
-//             if (data['payment-option'] === 'COD') {
-//               status = "Placed";
-//               orderStatus = "Success";
-              
-//             } else if (data['payment_option'] === "razorpay") {
-//               // Call razorpay here with the response and the first order ID
-//               Razorpay(response, checkedValuesInput.value.split(",")[0]);
-//               status = "Pending";
-//               orderStatus = "Pending";
-             
-//             } else if (data['payment_option'] === "wallet") {
-//                 let userData = await db.user.findById({_id: data.user})
-//                 if(userData.wallet < data.total){
-//                     flag = 1
-//                     reject(new Error("Insufficient Wallet Balance"))
-//                 }else {
-//                     userData.wallet = data.total
-//                     await userData.save(
-//                         status = 'placed',
-//                         orderStatus = 'success'
-//                     )
-//                 }
-
-//             } 
-            
-//             else {
-//                 status = "Pending",
-//                     orderStatus = "Pending"
-//             }
-
-//             let orderData = {
-//                 name: Address.fnameVal,
-//                 paymentStatus: status,
-//                 paymentMode: data['payment_option'],
-//                 paymentMethod: data['payment_option'],
-//                 productDetails: productDetails,
-//                 shippingAddress: Address,
-//                 orderStatus: orderStatus,
-//                 totalPrice: data.discountedAmount
-//             }
-//             let order = await db.Order.findOne({ user: userId })
-
-
-//             if (flag == 0) {
-//                 if (order) {
-//                     await db.Order.updateOne({ user: data.user },
-//                         {
-//                             $push: {
-//                                 orders: orderData
-//                             }
-//                         }).then((productDetails) => {
-//                             resolve(productDetails)
-//                         })
-//                 }else {
-//                     let newOrder = db.Order({
-//                         user: data.user,
-//                         orders: orderData
-//                     })
-//                     await newOrder.save().then((orders) => {
-//                         resolve(orders)
-//                     })
-//                 }
-
-
-//                 db.Cart.findOne({user: userId}).populate('cartItems.productId').lean().exec().then(async(cart)=> {
-//                     let total=0, result = {};
-//                     console.log('userID', userId);
-//                     console.log('cart', cart);
-
-//                     for (let i = 0; i < cart.cartItems.length; i++) {
-//                         total += cart.cartItems[i].productId.price * cart.cartItems[i].quantity;
-//                     }
-
-//                     //inventory management 
-//                     // update product quantity in the database
-//                     for (let i = 0; i < productDetails.length; i++) {
-//                         let purchasedProduct = productDetails[i];
-//                         let originalProduct = await db.Product.findById(purchasedProduct.productId);
-//                         let purchasedQuantity = purchasedProduct.quantity;
-//                         originalProduct.quantity -= purchasedQuantity;
-//                         await originalProduct.save();
-//                         await db.Cart.deleteMany({ user: data.user })
-//                     }
-
-
-//                     result.total = total;
-//                     result.orderDetails = productDetails;
-//                     console.log(result, 'results');
-//                     resolve(result)
-//                 })
-
-                
-
-
-
-//             }
-
-//         })
-//     } catch (error) {
-//         throw error;
-//     }
-// },
-placeOrder: (data,userId) => {
+placeOrder: (data, userId, total, discountAmount) => {
   
     try {
         let flag = 0
@@ -382,7 +216,8 @@ placeOrder: (data,userId) => {
                 productDetails: productDetails,
                 shippingAddress: Address,
                 orderStatus: orderStatus,
-                totalPrice: data.discountedAmount,
+                discountAmount: discountAmount,
+                totalPrice: total,
                 createdAt: moment().format('YYYY-MM-DD') // Add this line to set the current date
             };
             
@@ -447,7 +282,8 @@ placeOrder: (data,userId) => {
 generateRazorpay: (orderId, total) => {
     return new Promise((resolve, reject) => {
       // Check if the total amount is a valid number
-      const amountInPaisa = total * 100;
+     
+      const amountInPaisa = total*100 ;
       if (isNaN(amountInPaisa) || amountInPaisa <= 0) {
         reject(new Error("Invalid total amount."));
       }
@@ -1109,18 +945,85 @@ addWallet: (userId, total) => {
         console.log(error.message);
     }
 },
-//updatePaymentStatus
+
+getEachProduct: (userId) => {
+    return new Promise(async (resolve, reject) => {
+      await db.Cart.aggregate([
+        { $match: { user: new ObjectId(userId) } },
+        { $unwind: '$cartItems' },
+        {
+          $project: {
+            cartQuantity: '$cartItems.Quantity',
+            productId: '$cartItems.productId'
+          }
+        }
 
 
-//changePaymentStatus
+      ]).then((response) => {
+        resolve(response)
+
+      })
+
+    })
+  },
+  //validate coupon function
+  validateCouponCode: (code, total, userId) => {
+    console.log(total,'hhhhh');
+    return new Promise(async (resolve, reject) => {
+        let discountAmount
+        let couponTotal
+        await db.Coupon.findOne({ couponCode: code }).then(async (response) => {
+            console.log("----------------------------------------------------------------responce",response);
+            if (response) {
+                if (new Date(response.validity) - new Date() > 0) {
+                    const usedCoupon = await db.user.findOne({ _id: userId, coupons: code })
+                    console.log(usedCoupon);
+
+                    if (!usedCoupon) {
+                        if (total >= response.minPurchase) {
+                           
+                            discountAmount = ((total * response.minDiscountPercentage) / 100)
+                            if (discountAmount >= response.maxDiscountValue) {
+                                discountAmount = response.maxDiscountValue
+                                couponTotal = total - discountAmount
+console.log(couponTotal,"coupontotal1");
+                                resolve({ discountAmount, couponTotal, total, success: 'Coupon  Applied  SuccessFully' })
+                            } else {
+                                couponTotal = total - discountAmount
+                                console.log(couponTotal,"coupontotal2");
+                                resolve({ discountAmount, couponTotal, total, success: 'Coupon  Applied  SuccessFully' })
+
+                            }
+                        } else {
+                            resolve({ status: false, err: 'Coupon doesnt applicable for this purchase', total })
+
+                        }
+                    } else {
+                        resolve({ status: false, err: 'Coupon already used', total })
+
+                    }
+                } else {
+                    resolve({ status: false, err: 'Coupon is Expired', total })
 
 
+                }
+            } else {
+                resolve({ status: false, err: 'Coupon is not valid', total })
 
- //get Order Details
- 
+            }
+        })
+    })
+},
 
-//get Order Status
-
+//To add the used coupon to User DB
+addCoupontoUser: (couponName, userId) => {
+    return new Promise(async (resolve, reject) => {
+        await db.user.updateOne({ _id: userId },
+            { $push: { coupons: couponName } }).then((response) => {
+                resolve(response)
+            })
+    })
+}
 
 
 

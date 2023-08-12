@@ -1,4 +1,6 @@
+<%- include('../partials/user-header.ejs') %>
 <main class="main">
+
     <% if(wishlistCount > 0) { %>
   
     <section class="mt-50 mb-50">
@@ -85,7 +87,7 @@
   }
   
   </style>
-  
+  <%- include('../partials/user-footer.ejs') %>
   <script>
     // add to cart ajax call
     function addToCart(proId) {
